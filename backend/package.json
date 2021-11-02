@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node -r dotenv/config ./src/server",
+    "dev": "npx nodemon -r dotenv/config ./src/server",
+    "create": "npx sequelize-cli db:create",
+    "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed:all"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aes-js": "^3.1.2",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
+    "helmet": "^4.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.3.2",
+    "sequelize": "^6.9.0"
+  }
+}
