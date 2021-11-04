@@ -2,11 +2,11 @@ import React from "react";
 
 import Menu from "../../components/Menu";
 
-export default function Dashboard() {
+export default function Automations() {
     return (
         <>
             <Menu />
-            dashboard
+
         </>
     )
 }

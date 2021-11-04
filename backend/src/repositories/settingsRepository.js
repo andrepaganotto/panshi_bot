@@ -10,6 +10,24 @@ function getSettingsByEmail(email) {
     return model.findOne({ where: { email } });
 }
 
+let settingsCache = {};
+async function getDecryptedSettings(id) {
+    let settings = settingsCache[id];
+
+    if (!settings) {
+        settings = id ? await getSettings(id) : await getDefaultSettings();
+        settings.secretMBTC = crypto.decrypt(settings.secretMBTC);
+        settings.secretBNC = crypto.decrypt(settings.secretBNC);
+        settingsCache[id] = settings;
+    }
+
+    return settings;
+}
+
+async function getDefaultSettings() {
+    return model.findOne();
+}
+
 async function setSettings(id, newSettings) {
     const currentSettings = await getSettings(id);
 
@@ -31,4 +49,11 @@ async function setSettings(id, newSettings) {
     await currentSettings.save();
 }
 
-export default { getSettings, getSettingsByEmail, setSettings };
+async function incrementNonce(id) {
+    const user = await getSettings(id);
+    user.increment('nonceMBTC');
+    await user.save();
+    return (user.nonceMBTC);
+}
+
+export default { getSettings, getSettingsByEmail, getDecryptedSettings, getDefaultSettings, setSettings, incrementNonce };

@@ -7,6 +7,8 @@ import LoginPage from '../public/Login';
 
 //Private pages
 import DashboardPage from '../private/Dashboard/Dashboard';
+import SettingsPage from '../private/Settings/Settings';
+import AutomationsPage from '../private/Automations/Automations';
 
 export default function Routes() {
     return (
@@ -14,6 +16,8 @@ export default function Routes() {
             <Switch>
                 <Route exact path='/' component={LoginPage} />
                 <PrivateRoute path='/dashboard' component={DashboardPage} />
+                <PrivateRoute path='/settings' component={SettingsPage} />
+                <PrivateRoute path='/automations' component={AutomationsPage} />
             </Switch>
         </Router>
     )

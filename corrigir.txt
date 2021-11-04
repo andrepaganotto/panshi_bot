@@ -1,0 +1,5 @@
+Corrigir:
+
+- Tela de settings > Botão salvar clicável mesmo sem ter informação nenhuma para ser atualizada
+
+- Habilitar trading apenas por IP na Binance (pós deploy)
