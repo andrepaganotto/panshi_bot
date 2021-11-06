@@ -56,4 +56,15 @@ async function incrementNonce(id) {
     return (user.nonceMBTC);
 }
 
-export default { getSettings, getSettingsByEmail, getDecryptedSettings, getDefaultSettings, setSettings, incrementNonce };
+async function getDolarPrice() {
+    return (await getDefaultSettings()).dolar;
+}
+
+async function setDolarPrice(price) {
+    const user = await getDefaultSettings();
+    user.dolar = price;
+    await user.save();
+    return user.dolar;
+}
+
+export default { getSettings, getSettingsByEmail, getDecryptedSettings, getDefaultSettings, setSettings, incrementNonce, getDolarPrice, setDolarPrice };

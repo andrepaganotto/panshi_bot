@@ -909,16 +909,16 @@ $form-check-input-indeterminate-bg-color:       $component-active-bg;
 $form-check-input-indeterminate-border-color:   $form-check-input-indeterminate-bg-color;
 $form-check-input-indeterminate-bg-image:       url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='none' stroke='#{$form-check-input-indeterminate-color}' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/></svg>");
 
-$form-switch-color:               $gray-600;
+$form-switch-color:               #fff;
 $form-switch-width:               2.25em;
 $form-switch-padding-start:        $form-switch-width + .5em;
 $form-switch-bg-image:            url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-color}'/></svg>");
 $form-switch-border-radius:       $form-switch-width;
 
-$form-switch-focus-color:         $input-focus-border-color;
+$form-switch-focus-color:         #fff;
 $form-switch-focus-bg-image:      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-focus-color}'/></svg>");
 
-$form-switch-checked-color:       $component-active-color;
+$form-switch-checked-color:       #fff;
 $form-switch-checked-bg-image:    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$form-switch-checked-color}'/></svg>");
 $form-switch-checked-bg-position: right center;
 

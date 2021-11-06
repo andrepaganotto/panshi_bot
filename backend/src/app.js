@@ -26,6 +26,12 @@ app.use('/settings', authMiddleware, settingsRouter);
 import symbolsRouter from './routers/symbolsRouter.js';
 app.use('/symbols', authMiddleware, symbolsRouter);
 
+import exchangeRouter from './routers/exchangeRouter.js';
+app.use('/exchange', authMiddleware, exchangeRouter);
+
+import automationsRouter from './routers/automationsRouter.js';
+app.use('/automations', authMiddleware, automationsRouter);
+
 app.post('/logout', authController.logout);
 
 app.use(errorMiddleware);

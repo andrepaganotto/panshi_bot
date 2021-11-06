@@ -1,0 +1,102 @@
+.containHeight {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 90vh;
+    max-height: 770px;
+    top: 0%;
+}
+
+.automation-card:hover {
+    transform: scale(1.008);
+}
+
+.crypto-label {
+    font-size: 14px;
+    font-weight: 900;
+    transform: translateY(3px);
+}
+
+.crypto-name {
+    font-size: 12px;
+    font-weight: 400;
+    color: #d1d7e0;
+    transform: translateY(-2px);
+}
+
+.select-side-title {
+    width: 60px;
+    max-width: 60px;
+}
+
+.select-side-type {
+    font-size: 12px;
+    transform: translateY(-6px);
+}
+
+#side, #margin {
+    cursor: pointer;
+}
+
+.symbols::-webkit-scrollbar {
+    display: none;
+}
+
+.symbols {
+    max-height: 250px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    top: 100%;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.symbols:hover:after {
+    background-color: lightgrey;
+}
+
+.control {
+    border: #f2f2f2;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    width: 160px;
+    height: 44px;
+}
+
+.control:hover {
+    background-color: #f2f2f2;
+}
+
+.control-disabled {
+    background-color: #f7f7f7;
+    border: #f7f7f7;
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 10px;
+    width: 160px;
+    height: 44px;
+}
+
+.inner-shadow {
+    -moz-box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.20);
+    -webkit-box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.20);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.20);
+}
+
+.form-switch .form-check-input {
+    padding-left: 56px;
+    padding-top: 26px;
+    background-image: none;
+    background-color: #4dff6a;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #fc2d4b;
+    border-color: #d1d7e0;
+}
+
+.form-switch .form-check-input:focus {
+    box-shadow: none;
+    border-color: #d1d7e0;
+    outline: 0;
+}

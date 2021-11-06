@@ -4,6 +4,54 @@ import crypto from 'crypto';
 import binanceApi from 'node-binance-api';
 import settingsRepository from '../repositories/settingsRepository.js';
 
+export async function avgPrice(book, type, volume) {
+    return new Promise(resolve => {
+        if (type == "SELL") {
+            let avgPrice = 0; //Preço médio
+            let leftToSell = parseFloat(volume); //Essa variavel é para guardar o quanto ainda falta VENDER
+            for (let i = 0; leftToSell > 0; i++) {
+                if (parseFloat(book.bids[i][1]) >= leftToSell) { //Se no nivel de preço tiver o suficiente para executar minha ordem ja fecha o loop
+                    avgPrice += parseFloat(book.bids[i][0]) * leftToSell;
+                    leftToSell = 0;
+                }
+                else {
+                    leftToSell -= parseFloat(book.bids[i][1]); //Aqui eu subtraio o quanto eu ja VENDI para saber o quanto ainda falta no proximo loop
+                    avgPrice += parseFloat(book.bids[i][0]) * parseFloat(book.bids[i][1]); //Aqui eu somo quanto eu VENDI * quanto paguei nesse nivel de preço
+                }
+                //console.log('Falta VENDER: '+leftToSell);
+            }
+            resolve(parseFloat(avgPrice / volume));
+        }
+        else if (type == "BUY") {
+            let avgPrice = 0; //Preço médio
+            let leftToBuy = parseFloat(volume); //Essa variavel é para guardar o quanto a gente ainda falta COMPRAR
+            for (let i = 0; leftToBuy > 0; i++) {
+                if (parseFloat(book.asks[i][1]) >= leftToBuy) { //Se no nivel de preço tiver o suficiente para executar minha ordem ja fecha o loop
+                    avgPrice += parseFloat(book.asks[i][0]) * leftToBuy;
+                    leftToBuy = 0;
+                }
+                else {
+                    leftToBuy -= parseFloat(book.asks[i][1]); //Aqui eu subtraio o quanto eu ja COMPREI para saber o quanto ainda falta no proximo loop
+                    avgPrice += parseFloat(book.asks[i][0]) * parseFloat(book.asks[i][1]); //Aqui eu somo quanto eu COMPREI * quanto paguei nesse nivel de preço
+                }
+                //console.log('Falta COMPRAR: '+leftToBuy);
+            }
+            resolve(parseFloat(avgPrice / volume));
+        }
+    })
+}
+
+export async function getDolarPrice() {
+    try {
+        const resp = await axios.get('https://api.hgbrasil.com/finance/quotations?key=705d2f19');
+        // console.log(resp.data.results.currencies.USD);
+        return parseFloat(resp.data.results.currencies.USD.buy);
+    }
+    catch (err) {
+        console.error(err);
+    }
+}
+
 export default function exchangeApi(settings) {
     if (!settings) throw new Error('Cant start without user settings');
 
@@ -65,13 +113,19 @@ export default function exchangeApi(settings) {
             return response.data.ticker.last;
         }
 
-        async function getPrices(symbols, callback) {
-            const getPricesMBTC = setInterval(async () => {
-                try {
-                    const prices = await Promise.all(symbols.map(async symbol => await lastPrice(symbol.symbolMBTC)));
-                    callback(prices);
-                } catch (err) { if (err.code !== 'ETIMEDOUT') console.error(err.message) };
-            }, 15000);
+        async function getPrices(symbols, callback, first) {
+            if (first) {
+                const prices = await Promise.all(symbols.map(async symbol => await lastPrice(symbol.symbolMBTC)));
+                callback(prices);
+            }
+            else {
+                const getPricesMBTC = setInterval(async () => {
+                    try {
+                        const prices = await Promise.all(symbols.map(async symbol => await lastPrice(symbol.symbolMBTC)));
+                        callback(prices);
+                    } catch (err) { if (err.code !== 'ETIMEDOUT') console.error(err.message) };
+                }, 15000);
+            }
         }
 
         /* ---------------------- PRIVATE CALLS ---------------------- */
@@ -240,7 +294,7 @@ export default function exchangeApi(settings) {
         }
 
         function getAllCoinsInfo() {
-            return privateCall('/sapi/v1/capital/config/getall');   
+            return privateCall('/sapi/v1/capital/config/getall');
         }
 
         const buy = {
@@ -315,9 +369,33 @@ export default function exchangeApi(settings) {
             return stream.exchangeInfo();
         }
 
+        function miniTickerStream(callback) {
+            stream.websockets.miniTicker(markets => callback(markets))
+        }
+
+        function userDataStream(balanceCallback, executionCallback, listStatusCallback) {
+            stream.websockets.userData(
+                balance => balanceCallback(balance),
+                executionData => executionCallback(executionData),
+                subscribedData => console.log(`userDatStream:subscribed: ${subscribedData}`),
+                listStatusData => listStatusCallback(listStatusData)
+            );
+        }
+
+        const endpoints = {};
+        function bookDepthStream(symbol, callback) {
+            if (endpoints[symbol]) return;
+            endpoints[symbol] = stream.websockets.depth([symbol], depth => callback(depth));
+        }
+
+        function terminateBookDepthStream(symbol) {
+            stream.websockets.terminate(endpoints[symbol]);
+            delete endpoints[symbol];
+        }
+
         return {
             buy, marketBuy, sell, marketSell, listOpenOrders, getOrderStatus, getAllCoinsInfo, cancelOrder, lastPrice, orderBook, getAccountInfo, margin,
-            exchangeInfo
+            exchangeInfo, miniTickerStream, userDataStream, bookDepthStream, terminateBookDepthStream
         };
     }
 

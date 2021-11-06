@@ -1,0 +1,5 @@
+1 - Front envia objeto de automações para back
+2 - Order middleware recebe a requisição e verifica o saldo para realizar a operação
+3 - Automations controller recebe a automação no back
+4 - Controller manda a automação para o start automation dentro do panshi
+5 - Start automation tenta dar inicio a primeira operação, caso consiga abri-la, da inicio aos monitores e salvo no banco
