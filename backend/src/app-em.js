@@ -1,5 +1,6 @@
 import exchangeApi, { getDolarPrice } from "./utils/exchange.js";
 import { CronJob } from 'cron';
+import chalk from "chalk";
 
 import symbolsRepository from "./repositories/symbolsRepository.js";
 import settingsRepository from "./repositories/settingsRepository.js";
@@ -14,21 +15,21 @@ export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function startBookMonitor(symbol) {
     if (!BINANCE) throw new Error('Exchanges not initialized yet!');
-    console.log(`exchangeMonitor => Starting BOOK Monitor for ${symbol}`);
+    console.log(`${chalk.yellowBright('exchangeMonitor =>')} Starting BOOK Monitor for ${symbol}`);
     BINANCE.bookDepthStream(symbol, async (book) => {
         await PANSHI.updateMemory(symbol.replace('USDT', ''), monitorTypes.BOOK, book);
     })
 }
 
 function stopBookMonitor(symbol) {
-    console.log(`exchangeMonitor => Stopping BOOK Monitor for ${symbol}`);
+    console.log(`${chalk.yellowBright('exchangeMonitor =>')} Stopping BOOK Monitor for ${symbol}`);
     BINANCE.terminateBookDepthStream(`${symbol}USDT`);
 }
 
 const orderPolls = {};
 async function startOrderMonitor(symbol, orderId, interval = 15000) {
     if (!MERCADO) throw new Error('Exchanges not initialized yet!');
-    console.log(`exchangeMonitor => Starting ORDER Monitor for ${orderId}`);
+    console.log(`${chalk.yellowBright('exchangeMonitor =>')} Starting ORDER Monitor for ${orderId}`);
     orderPolls[`${orderId}`] = setInterval(async () => {
         const req = await MERCADO.getOrder(symbol, orderId);
         const order = req ? req.order : null;
@@ -44,7 +45,7 @@ async function startOrderMonitor(symbol, orderId, interval = 15000) {
 }
 
 function stopOrderMonitor(orderId) {
-    console.log(`exchangeMonitor => Stopping ORDER Monitor for ${orderId}`);
+    console.log(`${chalk.yellowBright('exchangeMonitor =>')} Stopping ORDER Monitor for ${orderId}`);
     clearInterval(orderPolls[orderId]);
     delete orderPolls[orderId];
 }

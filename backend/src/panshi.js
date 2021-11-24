@@ -6,6 +6,7 @@ import exchangeMonitor, { startMonitors, stopMonitors, sleep } from './app-em.js
 import symbolsRepository from './repositories/symbolsRepository.js';
 import automationsRepository from './repositories/automationsRepository.js';
 import operationsRepository from './repositories/operationsRepository.js';
+import chalk from 'chalk';
 
 
 let BINANCE, MERCADO;
@@ -48,7 +49,6 @@ async function evalDecision(automation, memoryData, type) {
     const { first, second } = automation;
 
     if (type === monitorTypes.ORDER && automation.order.id === memoryData.orderId) {
-        // console.log('evalDecision => Recebendo atualização do tipo ORDER para ordem', automation.order.id);
         switch (memoryData.status) {
             case 4:
                 //Finaliza a operação que está rodando da correspondente automação
@@ -60,15 +60,14 @@ async function evalDecision(automation, memoryData, type) {
                 //Se for a primeira e tiver loop reinicia a automação => OK
                 else if (!second && automation.loop) await startAutomation(automation, true);
 
-                //Executa a segunda operação se a que estiver rodando no momento for a primeira => 
-                else if (first.status === operationStatus.RUNNING) await nextOperation();
+                //Executa a segunda operação se a que estiver rodando no momento for a primeira => OK
+                else if (second.status === operationStatus.QUEUE) await startOperation({ ...second, symbol: automation.symbol });
 
-                //Se for a segunda e não tiver loop finaliza a automação => 
-                else if (second.status === operationStatus.RUNNING && !automation.loop) await finishAutomation();
+                //Se for a segunda e não tiver loop finaliza a automação => OK
+                else if (second.status === operationStatus.FINISHED && !automation.loop) await finishAutomation(automation);
 
-                //Se for a segunda e tiver loop reinicia a automação => 
-                else if (second.status === operationStatus.RUNNING && automation.loop) await startAutomation(automation, true);
-
+                //Se for a segunda e tiver loop reinicia a automação => OK
+                else if (second.status === operationStatus.FINISHED && automation.loop) await startAutomation(automation, true);
                 break;
             case 3:
 
@@ -96,7 +95,7 @@ function deleteBrainIndex(index, automationId) {
 }
 
 function updateBrain(automation) {
-    console.log('Updating brain with automation:', automation);
+    // console.log('Updating brain with automation:', automation);
     if (automation.status !== automationStatus.RUNNING) return;
     updateBrainIndex(automation.symbol, automation.id);
     BRAIN[automation.id] = automation;
@@ -131,23 +130,18 @@ function findAutomation(symbol) {
 }
 
 async function updateMemory(symbol, type, value) {
-    if (LOCK_MEMORY || LOCK_BRAIN) {
-        //console.log('trying to update memory, found lock');
-        return false;
-    }
+    if (LOCK_MEMORY || LOCK_BRAIN) return false;
 
     const memoryKey = type === 'ORDER' ? `${symbol}:${type}:${value.orderId}` : type === 'dolar' ? 'dolar' : `${symbol}:${type}`;
     MEMORY[memoryKey] = value;
 
-    //console.log(`Panshi memory update: ${type} `);
-    // => ${JSON.stringify(value)}
+    LOGS && console.log(`Panshi ${chalk.bgRgb(255, 159, 26).dim('memory update')}: ${type} => ${JSON.stringify(value)}`);
 
     try {
         const automations = findAutomation(symbol);
         if (automations && automations.length && !LOCK_BRAIN) {
             LOCK_BRAIN = true;
             LOCK_MEMORY = true;
-            //console.log('Locking BRAIN and MEMORY');
             await Promise.all(automations.map(async auto => await evalDecision(auto, MEMORY[memoryKey], type)));
         }
     } finally {
@@ -190,7 +184,7 @@ async function startOperation(operation) {
     const limitPriceMBTC = parseFloat((avgPriceBNC * MEMORY.dolar * operation.agio).toFixed(5)); //Calcula o preço que a ordem deve ser colocada no MBTC
 
     //Tenta abrir a limit order de compra ou venda no MBTC
-    console.log('startOperation => Abrindo ordem no MBTC');
+    console.log(`${chalk.rgb(24, 220, 255).bold('startOperation =>')} Abrindo ordem no MBTC`);
     let openOrder = operation.side === 'BUY' ?
         await MERCADO.buy(symbolMBTC, operation.vol, limitPriceMBTC) :
         await MERCADO.sell(symbolMBTC, operation.vol, limitPriceMBTC);
@@ -212,11 +206,6 @@ async function changeOperation(operation, limitPriceMBTC) {
 
 }
 
-//Finaliza a primeira, e executa a segunda operação de uma automação
-async function nextOperation(operation) {
-
-}
-
 //Após comprar ou vender no MBTC, executa a mercado a operação na posição contrária na BNC e salva a operação realizada no banco de estatistica
 async function finishOperation(automation, order) {
     const avgExecutedPrice = (fills, precision) => {
@@ -229,8 +218,8 @@ async function finishOperation(automation, order) {
         return parseFloat((price / totalVol).toFixed(precision));
     }
 
-    const operation = automation.second && automation.second.status === operationStatus.RUNNING ? automation.second : automation.first; //Pego a operação que está rodando na automação
-    console.log(`${operation.side === 'BUY' ? 'Comprei' : 'Vendi'} no MBTC, ${operation.side === 'BUY' ? 'vendendo' : 'comprando'} na BNC!`);
+    const operation = automation.second && automation.first.status === operationStatus.FINISHED ? automation.second : automation.first; //Pego a operação que está rodando na automação
+    console.log(`${chalk.rgb(24, 220, 255).bold('finishOperation => ')} ${operation.side === 'BUY' ? chalk.rgb(50, 255, 126).bold('Comprei') : chalk.rgb(255, 77, 77).bold('Vendi')} no MBTC, ${operation.side === 'BUY' ? chalk.rgb(255, 77, 77).bold('vendendo') : chalk.rgb(50, 255, 126).bold('comprando')} na BNC!`);
     operation.status = operationStatus.FINISHED; //Defino o status da operação como finalizado
 
     const { symbolBNC, precisionBNC } = await symbolsRepository.getSymbol(automation.symbol);
@@ -274,13 +263,13 @@ async function startAutomation(automation, restarting) {
             automation.runs = (await automationsRepository.updateAutomation(automation.id, automation)).runs; //Atualizo a automação no banco
 
             exchangeMonitor.startOrderMonitor((await symbolsRepository.getSymbol(automation.symbol)).symbolMBTC, automation.order.id); //Reinicio o monitor de ordens para a automação
-            console.log(`startAutomation => ${automation.runs}ª execução da automação (${automation.id}) FINALIZADA com sucesso! Recomeçando...`);
+            console.log(`${chalk.rgb(24, 220, 255).bold('startAutomation =>')} ${automation.runs}ª execução da automação (${automation.id}) FINALIZADA com sucesso! Recomeçando...`);
         }
         else { //Se estiver CRIANDO a automação, salvo no banco a automação criada e retorno ela para o controller, após isso atualizo o cérebro com a automação criada            
             automation.order = started; //Atribuo os valores que vieram de ID e Price
             automation = await (await automationsRepository.insertAutomation(automation)).get({ plain: true });
             updateBrain(automation);
-            console.log(`startAutomation => Automação (${automation.id}) INICIADA com sucesso!`);
+            console.log(`${chalk.rgb(24, 220, 255).bold('startAutomation =>')} Automação (${automation.id}) INICIADA com sucesso!`);
             return automation;
         }
     } else return false;
@@ -292,18 +281,18 @@ async function finishAutomation(automation, cancel) {
     deleteMemory(automation);
 
     if (cancel) { //Caso precise CANCELAR a automação
-        console.log('finishAutomation => Cancelando ordem no MBTC');
+        console.log(`${chalk.rgb(24, 220, 255).bold('finishAutomation =>')} Cancelando ordem no MBTC`);
         await MERCADO.cancelOrder((await symbolsRepository.getSymbol(automation.symbol)).symbolMBTC, automation.order.id); //Tenta cancelar a ordem no MBTC
 
         //Se a automação não tiver nenhuma RUN e a primeira operação ainda não foi executada pode apagar do banco
         if (automation.runs === 0 && automation.first.status != operationStatus.FINISHED) {
-            console.log(`finishAutomation => Automação ${automation.id} CANCELADA com sucesso`);
+            console.log(`${chalk.rgb(24, 220, 255).bold('finishAutomation =>')} Automação ${automation.id} CANCELADA com sucesso`);
             return await automationsRepository.deleteAutomation(automation.id);
         }
         //Se a automação tiver rodado alguma vez ou se a primeira tiver sido finalizada, apenas atualizo no banco o status dela
         else if (automation.runs >= 1 || automation.first.status === operationStatus.FINISHED) {
             automation.status = automationStatus.CANCELED;
-            console.log(`finishAutomation => Automação ${automation.id} CANCELADA com sucesso`);
+            console.log(`${chalk.rgb(24, 220, 255).bold('finishAutomation =>')} Automação ${automation.id} CANCELADA com sucesso`);
             return await automationsRepository.updateAutomation(automation.id, automation);
         }
     }
@@ -311,7 +300,7 @@ async function finishAutomation(automation, cancel) {
     await automationsRepository.incrementRun(automation.id); //Soma uma run
     automation.status = automationStatus.FINISHED; //Defino o status como finalizado
     automation.finishedAt = new Date(); //Defino a data e hora da finalização
-    console.log(`finishAutomation => Automação ${automation.id} FINALIZADA com sucesso`);
+    console.log(`${chalk.rgb(24, 220, 255).bold('finishAutomation =>')} Automação ${automation.id} FINALIZADA com sucesso`);
 
     return await automationsRepository.updateAutomation(automation.id, automation); //Salvo no banco
 }
