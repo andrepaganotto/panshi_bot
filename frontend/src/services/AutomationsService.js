@@ -2,7 +2,7 @@ import baseApi from "./ApiService";
 const api = baseApi();
 
 async function getAutomations() {
-    const resp = await api.get('/automations');
+    const resp = await api.get('/automations/active');
     return (resp.data);
 }
 

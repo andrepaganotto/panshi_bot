@@ -22,32 +22,18 @@ async function getActiveAutomations(req, res, next) {
 
 async function insertAutomation(req, res, next) {
     const newAutomation = req.body;
-
-    //Essas atribuições quem vai fazer é o panshi
-    newAutomation.status = 'RUNNING';
-    newAutomation.first.status = 'RUNNING';
-    if (newAutomation.second) newAutomation.second.status = 'QUEUE';
-    
-    console.log(newAutomation);
-    const insert = await repository.insertAutomation(newAutomation);
-    console.log(insert);
-    // const automation = await panshi.startAutomation(newAutomation)
-    // if (!automation) return res.status(503).end();
-
+    const automation = await panshi.startAutomation(newAutomation)
+    if (!automation) return res.status(503).end();
     return res.status(201).end();
 }
 
 async function cancelAutomation(req, res, next) {
     const id = req.params.id;
     const automation = await repository.getAutomation(id);
+    if (!automation || automation.status === automationStatus.CANCELED) return res.status(208).send('Operação já cancelada').end();
 
-    //quando for cancelar, se a automação não tiver nenhuma RUN e a primeira operação ainda não foi executada pode apagar do banco
-
-    if (automation.status === automationStatus.CANCELED) return res.status(208).send('Operação já cancelada').end();
-
-    const canceled = await panshi.cancelAutomation(automation, true);
+    const canceled = await panshi.finishAutomation(automation, true);
     if (!canceled) return res.status(208).send('Operação já executada ou cancelada, aguarde processamento!').end();
-
     return res.status(204).end();
 }
 

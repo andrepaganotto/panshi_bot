@@ -15,7 +15,7 @@ export default function FloatValues({ onChange, agio, vol, tol, selectedSymbol }
     useEffect(() => {
         axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${selectedSymbol.symbol}USDT`)
             .then(resp => {
-                setMinVol(parseFloat((10 / parseFloat(resp.data.price)).toFixed(selectedSymbol.precision)));
+                setMinVol(parseFloat((11 / parseFloat(resp.data.price)).toFixed(selectedSymbol.precision)));
             })
             .catch(err => console.error(err))
     }, [selectedSymbol]);

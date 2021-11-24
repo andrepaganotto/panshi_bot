@@ -20,7 +20,7 @@ import panshi from "./panshi.js";
         const settings = await settingsRepository.getDecryptedSettings();
 
         const automations = await automationsRepository.getActiveAutomations();
-        panshi.init(automations, wss);
+        panshi.init(settings, automations, wss);
         exchangeMonitor.init(settings, wss, panshi);
     }
     catch (err) {

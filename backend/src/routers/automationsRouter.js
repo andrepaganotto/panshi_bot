@@ -8,6 +8,8 @@ router.get('/brain', controller.getPanshiBrain);
 
 router.get('/memory', controller.getPanshiMemory);
 
+router.get('/active', controller.getActiveAutomations);
+
 router.get('/', controller.getAutomations);
 
 router.get('/:id', controller.getAutomation);

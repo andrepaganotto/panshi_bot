@@ -3,7 +3,7 @@ import { Card, Col, Row, Button, Modal, Form } from '@themesberg/react-bootstrap
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 
-import symbolService from '../../../services/SymbolService';
+import symbolService from '../../../../services/SymbolService';
 import NewAutomationButton from './NewAutomationButton';
 import SelectSymbol from './SelectSymbol';
 import SelectSide from './SelectSide';
@@ -11,7 +11,7 @@ import FloatValues from './FloatValues';
 import Margin from './Margin';
 import LoopOperations from './LoopOperations';
 
-import automationsService from '../../../services/AutomationsService';
+import automationsService from '../../../../services/AutomationsService';
 
 export default function NewAutomationModal({ updateOut }) {
 

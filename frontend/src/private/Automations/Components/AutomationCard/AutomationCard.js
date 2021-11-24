@@ -4,10 +4,10 @@ import { faSyncAlt, faRedoAlt } from "@fortawesome/free-solid-svg-icons";
 import { Card, Col, Button, Modal, } from '@themesberg/react-bootstrap';
 import useWebSocket from 'react-use-websocket';
 
-import ElapsedTime from './ElapsedTime'
+import ElapsedTime from '../ElapsedTime'
 import OperationCard from './OperationCard';
 
-import automationService from '../../../services/AutomationsService'
+import automationService from '../../../../services/AutomationsService'
 
 function AutomationCard({ automation, updateOut }) {
     const [error, setError] = useState('');
@@ -60,7 +60,7 @@ function AutomationCard({ automation, updateOut }) {
 
     return (
         <>
-            {/* {console.log('rendering')} */}
+            {/* {console.log('printing in AutoCard', automation)} */}
             <Card as='a' className='border-0 automation-card shadow' style={{ width: '100%', height: '360px' }} onClick={e => setShow(true)}>
 
                 <Card.Header className='d-flex justify-content-between align-items-center mb-0 fw-bolder py-2 bg-white'>
@@ -72,8 +72,8 @@ function AutomationCard({ automation, updateOut }) {
                 </Card.Header>
 
                 <Card.Body className='d-flex flex-column'>
-                    <OperationCard data={automationInfo[automation.id]} first={automation.first} />
-                    {automation.second && <OperationCard data={automationInfo[automation.id]} second={automation.second} />}
+                    {/* <OperationCard data={automationInfo[automation.id]} first={automation.first} />
+                    {automation.second && <OperationCard data={automationInfo[automation.id]} second={automation.second} />} */}
                 </Card.Body>
 
                 <Card.Footer className={`px-3 py-2  bg-${automation.status === 'RUNNING' ? 'secondary' : automation.status === 'CANCELED' ? 'danger' : 'success'}`}>

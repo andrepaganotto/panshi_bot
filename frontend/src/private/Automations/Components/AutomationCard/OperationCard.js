@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { Col, Card } from "@themesberg/react-bootstrap";
 
-import ElapsedTime from "./ElapsedTime";
+import ElapsedTime from "../ElapsedTime";
 
 export default function OperationCard({ data, first, second }) {
     const operation = first || second
-
+    console.log('data', data);
     const [info, setInfo] = useState({
         priceBNC: operation.priceBNC,
         priceMBTC: operation.priceMBTC,

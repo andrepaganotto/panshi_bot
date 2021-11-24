@@ -10,24 +10,25 @@ let WSS, PANSHI, BINANCE, MERCADO;
 let allSymbols, dolar;
 const pricesMBTC = {}, pricesBNC = {}, agios = [];
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function startBookMonitor({ symbol }) {
+async function startBookMonitor(symbol) {
     if (!BINANCE) throw new Error('Exchanges not initialized yet!');
-
+    console.log(`exchangeMonitor => Starting BOOK Monitor for ${symbol}`);
     BINANCE.bookDepthStream(symbol, async (book) => {
         await PANSHI.updateMemory(symbol.replace('USDT', ''), monitorTypes.BOOK, book);
     })
 }
 
 function stopBookMonitor(symbol) {
+    console.log(`exchangeMonitor => Stopping BOOK Monitor for ${symbol}`);
     BINANCE.terminateBookDepthStream(`${symbol}USDT`);
 }
 
 const orderPolls = {};
-async function startOrderMonitor({ symbol, orderId, interval }) {
+async function startOrderMonitor(symbol, orderId, interval = 15000) {
     if (!MERCADO) throw new Error('Exchanges not initialized yet!');
-
+    console.log(`exchangeMonitor => Starting ORDER Monitor for ${orderId}`);
     orderPolls[`${orderId}`] = setInterval(async () => {
         const req = await MERCADO.getOrder(symbol, orderId);
         const order = req ? req.order : null;
@@ -43,6 +44,7 @@ async function startOrderMonitor({ symbol, orderId, interval }) {
 }
 
 function stopOrderMonitor(orderId) {
+    console.log(`exchangeMonitor => Stopping ORDER Monitor for ${orderId}`);
     clearInterval(orderPolls[orderId]);
     delete orderPolls[orderId];
 }
@@ -76,6 +78,17 @@ async function loadFirstData() {
     startAgioMonitor();
 }
 
+export async function startMonitors(symbol, id) {
+    const { symbolMBTC, symbolBNC } = await symbolsRepository.getSymbol(symbol);
+    startBookMonitor(symbolBNC); //Inicia monitor de book da BNC
+    startOrderMonitor(symbolMBTC, id, 15000); //Inicia monitor de ordem do MBTC
+}
+
+export function stopMonitors(symbol, id) {
+    exchangeMonitor.stopBookMonitor(symbol); //Para o monitor de book da BNC
+    exchangeMonitor.stopOrderMonitor(id); //Para o monitor de ordens do MBTC
+}
+
 async function init(settings, wssInstance, panshiInstance) {
     if (!settings) throw new Error('Cant start without settings or panshi settings');
     const exchange = exchangeApi(settings);
@@ -86,23 +99,6 @@ async function init(settings, wssInstance, panshiInstance) {
     MERCADO = exchange.MercadoBitcoin();
 
     loadFirstData();
-
-    // const monitors = await monitorsRepository.getActiveMonitors();
-    // for(let monitor of monitors) {
-    //     switch (monitor.type) {
-    //         case monitorTypes.AGIO:
-    //             startAgioMonitor();
-    //             break;
-
-    //         case monitorTypes.BOOK:
-    //             startBookMonitor();
-    //             break;
-    //         case monitorTypes.ORDER:
-    //             await sleep(1000);
-    //             startOrderMonitor();
-    //             break;
-    //     }
-    // }
 
     const updateDolar = new CronJob('0 */5 8-17 * * 1-5', async () => {
         //A cada 5 minutos, de segunda a sexta das 9 as 18h (SP) atualiza a cotação do dolar

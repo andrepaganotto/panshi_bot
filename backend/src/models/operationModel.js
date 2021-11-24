@@ -19,6 +19,7 @@ const operationsModel = database.define('operations', {
     priceMBTC: Sequelize.DECIMAL(10, 8), //Preço em que a ordem foi executada no MBTC
     priceBNC: Sequelize.DECIMAL(10, 8), //Preço em que a ordem foi executada a mercado na BNC
     dolar: Sequelize.DECIMAL(10, 5), //Valor que estava o dólar no momento da execução
+    executedAgio: Sequelize.DECIMAL(10, 5),
     createdAt: Sequelize.DATE,
     updatedAt: Sequelize.DATE,
     finishedAt: Sequelize.DATE

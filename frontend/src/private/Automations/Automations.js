@@ -3,9 +3,9 @@ import { Card, Col, Row, Button, Modal, Form } from '@themesberg/react-bootstrap
 
 import './AutomationStyles.css'
 import Menu from '../../components/Menu';
-import NewAutomationModal from './Components/NewAutomationModal';
+import NewAutomationModal from './Components/NewAutomation/NewAutomationModal';
 
-import AutomationCard from './Components/AutomationCard';
+import AutomationCard from './Components/AutomationCard/AutomationCard';
 import automationsService from '../../services/AutomationsService';
 
 function Automations() {
@@ -13,13 +13,7 @@ function Automations() {
     const [automations, setAutomations] = useState('');
     const [error, setError] = useState('');
 
-    function updateAutomations() {
-        automationsService.getAutomations()
-            .then(resp => {
-                console.log(resp);
-                setAutomations(resp)
-            });
-    }
+    const updateAutomations = async () => setAutomations(await automationsService.getAutomations());
 
     useEffect(() => {
         updateAutomations();
