@@ -89,13 +89,7 @@ export default function exchangeApi(settings) {
                     else {
                         const err = response.data;
                         console.log(err);
-
-                        if (err.status_code === 207) //Sem saldo em reais
-                            return false;
-                        if (err.status_code === 212) //Ordem ja processada ou cancelada
-                            return false;
-                        if (err.status_code === 246) //Sem saldo de token
-                            return false;
+                        return false;
                     }
                 }
                 catch (err) {
